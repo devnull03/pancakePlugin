@@ -1,0 +1,16 @@
+name: PancakePlugin
+version: 1.1
+main: io.github.arnav03mehta.PancakePlugin
+api-version: 1.16
+commands:
+  withdraw:
+    aliases: [wd]
+    usage: /<command>
+  deposit:
+    aliases: [dep]
+    usage: /<command>
+  balance:
+    aliases: [bal]
+    usage: /<command>
+  newuser:
+    usage: /<command>
