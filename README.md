@@ -7,12 +7,15 @@ A spigot plugin which adds a currency system that uses pancakes as the currency 
  - withdraw:
      aliases: wd
      usage: /<command> <amount of pancakes>
+     
  - deposit:
      aliases: dep
      usage: /<command> <amount of pancakes or all>
+     
  - balance:
      aliases: bal
      usage: /<command> <player (optional)>
+     
  - newuser:
      permission: op
      usage: /<command> <player> <discord username (optional)> <initial pancakes (optional) default 500>
