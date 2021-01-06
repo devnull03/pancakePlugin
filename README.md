@@ -1,4 +1,5 @@
-# Pancake Plugin
+# Pancake Plugin <img src="https://pancake.gg/_nuxt/img/large-logo.2e8edcb.png" width=25 height=25>
+
 A spigot plugin which adds a currency system that uses pancakes as the currency (yes, like the discord [pancake bot](https://pancake.gg/)) 
 
 ## All Commands: 
