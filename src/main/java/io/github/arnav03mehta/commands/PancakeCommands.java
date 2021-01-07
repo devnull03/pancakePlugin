@@ -74,7 +74,7 @@ public class PancakeCommands implements CommandExecutor {
                         }
                         playerUUID = newPlayer.getUniqueId();
                     }
-                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Current balance = " + ChatColor.GREEN + balance(statement, playerUUID));
+                    player.sendMessage(ChatColor.YELLOW + "Current balance = " + ChatColor.GREEN + balance(statement, playerUUID));
                     return true;
                 }
                 case ("wd"), ("withdraw") -> {
@@ -137,6 +137,36 @@ public class PancakeCommands implements CommandExecutor {
                     }
                     return true;
                 }
+                case ("addbalance") -> {
+                    if (!(player.isOp())) {
+                        player.sendMessage(ChatColor.RED + "You don't have the required permission");
+                        return true;
+                    }
+                    switch (args.length) {
+                        case (1) -> player.sendMessage(ChatColor.RED + "Amount not specified");
+                        case (2) -> {
+                            int amount;
+                            try {
+                                amount = Integer.parseInt(args[1]);
+                            } catch (NumberFormatException e) {
+                                player.sendMessage(ChatColor.RED + "Invalid amount");
+                                return true;
+                            }
+                            Player selectedPlayer = Bukkit.getPlayer(args[0]);
+                            if (selectedPlayer == null){
+                                player.sendMessage(ChatColor.RED + "Invalid player");
+                                return true;
+                            }
+                            int current = deposit(statement, amount, selectedPlayer.getUniqueId());
+                            player.sendMessage(String.format(ChatColor.YELLOW + "deposited %s%s%s pancakes to %s's account",ChatColor.GREEN, amount, ChatColor.YELLOW, selectedPlayer.getName()));
+                            player.sendMessage(ChatColor.YELLOW + "New balance = " + ChatColor.GREEN + current);
+
+                        }
+                        default -> player.sendMessage(ChatColor.RED + "Invalid amount of arguments");
+                    }
+
+                    return true;
+                }
                 case ("newuser") -> {
                     if (!(player.isOp())) {
                         player.sendMessage(ChatColor.RED + "You don't have the required permission");
@@ -190,6 +220,10 @@ public class PancakeCommands implements CommandExecutor {
                     } catch (InvalidParameterException e) {
                         player.sendMessage(ChatColor.RED + "Invalid args");
                     }
+                    return true;
+                }
+                case ("test") ->{
+                    player.sendMessage(leaderBoard(statement));
                     return true;
                 }
                 default -> {
@@ -278,4 +312,54 @@ public class PancakeCommands implements CommandExecutor {
             throw e;
         }
     }
+    public static String leaderBoard(Statement statement) throws SQLException {
+        try {
+            ResultSet result = statement.executeQuery("select username, discordUsername, pancakes from bank order by pancakes");
+            int usernameLength = 0, discordLength = 0, pancakeLength = 0, n = 0;
+
+            while (result.next() || (n <= 9)) {
+                if (result.getString("username").length() > usernameLength) {
+                    usernameLength = result.getString("username").length();
+                }
+                if (result.getString("discordUsername").length() > discordLength) {
+                    discordLength = result.getString("discordUsername").length();
+                }
+                if (Integer.toString(result.getInt("pancakes")).length() > pancakeLength) {
+                    pancakeLength = Integer.toString(result.getInt("pancakes")).length();
+                }
+                n++;
+            }
+
+            StringBuilder lb = new StringBuilder(" Username" + " ".repeat(usernameLength - 8) +
+                    "| Discord" + " ".repeat(discordLength - 9) +
+                    "| Pancakes" + " ".repeat(pancakeLength - 10) + "\n");
+
+            n = 0;
+            result.refreshRow();
+            while (result.next() || (n <= 9)) {
+                lb.append(" ").append(result.getString("username")).append(" ".repeat(
+                        usernameLength - result.getString("username").length()
+                )).append("| ").append(result.getString("discordUsername")).append(" ".repeat(
+                        discordLength - result.getString("discordUsername").length()
+                )).append("| ").append(result.getInt("pancakes")).append(" ".repeat(
+                        pancakeLength - result.getString("pancakes").length()
+                ));
+                n++;
+            }
+            return lb.toString();
+        } catch (SQLException e) {
+            Bukkit.getConsoleSender().sendMessage("[balance] "+ChatColor.RED + e.getMessage());
+            throw e;
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+

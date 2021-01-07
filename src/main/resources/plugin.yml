@@ -1,16 +1,23 @@
 name: PancakePlugin
-version: 1.1
+version: 1.01
 main: io.github.arnav03mehta.PancakePlugin
+author: /dev/Null
 api-version: 1.16
 commands:
   withdraw:
     aliases: [wd]
-    usage: /<command>
+    usage: /<command> <amount of pancakes>
   deposit:
     aliases: [dep]
-    usage: /<command>
+    usage: /<command> <amount of pancakes>
   balance:
     aliases: [bal]
-    usage: /<command>
+    usage: /<command> <player (optional)>
   newuser:
+    permission: op
+    usage: /<command> <player> <discord username (optional)> <initial balance (optional)>
+  addbalance:
+    permission: op
+    usage: /<command> <player> <amount of pancakes>
+  test:
     usage: /<command>

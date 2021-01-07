@@ -27,6 +27,8 @@ public final class PancakePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("deposit")).setExecutor(pancakeCommands);
         Objects.requireNonNull(getCommand("balance")).setExecutor(pancakeCommands);
         Objects.requireNonNull(getCommand("newuser")).setExecutor(pancakeCommands);
+        Objects.requireNonNull(getCommand("addbalance")).setExecutor(pancakeCommands);
+        Objects.requireNonNull(getCommand("test")).setExecutor(pancakeCommands);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "plugin enabled");
     }
 
