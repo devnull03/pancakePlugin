@@ -17,6 +17,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class PancakeCommands implements CommandExecutor {
@@ -50,13 +52,6 @@ public class PancakeCommands implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Player only command");
-            return false;
-        }
-        Player player = (Player) sender;
-        World world = player.getWorld();
-        UUID playerUUID = player.getUniqueId();
 
         try {
             Statement statement = connection.createStatement();
@@ -66,18 +61,33 @@ public class PancakeCommands implements CommandExecutor {
 
             switch (label) {
                 case ("balance"), ("bal") -> {
+                    UUID playerUUID;
                     if (args.length >= 1) {
                         Player newPlayer = Bukkit.getPlayer(args[0]);
                         if (newPlayer == null) {
-                            player.sendMessage(ChatColor.RED + "invalid player");
+                            sender.sendMessage(ChatColor.RED + "invalid player");
                             return true;
                         }
                         playerUUID = newPlayer.getUniqueId();
+                    } else if (!(sender instanceof Player)) {
+                        sender.sendMessage(ChatColor.RED + "Invalid amount of args");
+                        return true;
+                    } else {
+                        playerUUID = ((Player) sender).getUniqueId();
                     }
-                    player.sendMessage(ChatColor.YELLOW + "Current balance = " + ChatColor.GREEN + balance(statement, playerUUID));
+                    NumberFormat format = NumberFormat.getCurrencyInstance();
+                    sender.sendMessage(ChatColor.YELLOW + "Current balance = " + ChatColor.GREEN + format.format(balance(statement, playerUUID)));
                     return true;
                 }
                 case ("wd"), ("withdraw") -> {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(ChatColor.RED + "Player only command");
+                        return false;
+                    }
+                    Player player = (Player) sender;
+                    World world = player.getWorld();
+                    UUID playerUUID = player.getUniqueId();
+
                     try {
                         if (args.length >= 1) {
                             int balance = balance(statement, playerUUID);
@@ -101,6 +111,13 @@ public class PancakeCommands implements CommandExecutor {
                     return true;
                 }
                 case ("deposit"), ("dep") -> {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(ChatColor.RED + "Player only command");
+                        return false;
+                    }
+                    Player player = (Player) sender;
+                    UUID playerUUID = player.getUniqueId();
+
                     try {
                         if (args.length >= 1) {
                             Inventory inventory = player.getInventory();
@@ -138,38 +155,38 @@ public class PancakeCommands implements CommandExecutor {
                     return true;
                 }
                 case ("addbalance") -> {
-                    if (!(player.isOp())) {
-                        player.sendMessage(ChatColor.RED + "You don't have the required permission");
+                    if (!(sender.isOp())) {
+                        sender.sendMessage(ChatColor.RED + "You don't have the required permission");
                         return true;
                     }
                     switch (args.length) {
-                        case (1) -> player.sendMessage(ChatColor.RED + "Amount not specified");
+                        case (1) -> sender.sendMessage(ChatColor.RED + "Amount not specified");
                         case (2) -> {
                             int amount;
                             try {
                                 amount = Integer.parseInt(args[1]);
                             } catch (NumberFormatException e) {
-                                player.sendMessage(ChatColor.RED + "Invalid amount");
+                                sender.sendMessage(ChatColor.RED + "Invalid amount");
                                 return true;
                             }
                             Player selectedPlayer = Bukkit.getPlayer(args[0]);
                             if (selectedPlayer == null){
-                                player.sendMessage(ChatColor.RED + "Invalid player");
+                                sender.sendMessage(ChatColor.RED + "Invalid player");
                                 return true;
                             }
                             int current = deposit(statement, amount, selectedPlayer.getUniqueId());
-                            player.sendMessage(String.format(ChatColor.YELLOW + "deposited %s%s%s pancakes to %s's account",ChatColor.GREEN, amount, ChatColor.YELLOW, selectedPlayer.getName()));
-                            player.sendMessage(ChatColor.YELLOW + "New balance = " + ChatColor.GREEN + current);
+                            sender.sendMessage(String.format(ChatColor.YELLOW + "deposited %s%s%s pancakes to %s's account",ChatColor.GREEN, amount, ChatColor.YELLOW, selectedPlayer.getName()));
+                            sender.sendMessage(ChatColor.YELLOW + "New balance = " + ChatColor.GREEN + current);
 
                         }
-                        default -> player.sendMessage(ChatColor.RED + "Invalid amount of arguments");
+                        default -> sender.sendMessage(ChatColor.RED + "Invalid amount of arguments");
                     }
 
                     return true;
                 }
-                case ("newuser") -> {
-                    if (!(player.isOp())) {
-                        player.sendMessage(ChatColor.RED + "You don't have the required permission");
+                case ("adduser") -> {
+                    if (!(sender.isOp())) {
+                        sender.sendMessage(ChatColor.RED + "You don't have the required permission");
                         return true;
                     }
                     String discord;
@@ -180,50 +197,64 @@ public class PancakeCommands implements CommandExecutor {
                             case (3) -> {
                                 discord = args[1];
                                 balance = Integer.parseInt(args[2]);
-                                newPlayer = Bukkit.getPlayer(args[0]);
-                                if (newPlayer == null) {
-                                    player.sendMessage(ChatColor.RED + "invalid player");
-                                    return true;
-                                }
-                                newUser(statement, newPlayer.getUniqueId(), newPlayer.getName(), discord, balance);
                             }
                             case (2) -> {
                                 discord = args[1];
                                 balance = 500;
-                                newPlayer = Bukkit.getPlayer(args[0]);
-                                if (newPlayer == null) {
-                                    player.sendMessage(ChatColor.RED + "invalid player");
-                                    return true;
-                                }
-                                newUser(statement, playerUUID, player.getName(), discord, balance);
                             }
                             case (1) -> {
                                 discord = null;
                                 balance = 500;
-                                newPlayer = Bukkit.getPlayer(args[0]);
-                                if (newPlayer == null) {
-                                    player.sendMessage(ChatColor.RED + "invalid player");
-                                    return true;
-                                }
-                                newUser(statement, newPlayer.getUniqueId(), newPlayer.getName(), null, balance);
                             }
                             default -> {
-                                player.sendMessage(ChatColor.RED + "Invalid amount of args");
+                                sender.sendMessage(ChatColor.RED + "Invalid amount of args");
                                 return true;
                             }
                         }
-                        player.sendMessage(ChatColor.GREEN + "New account created");
-                        player.sendMessage(ChatColor.GREEN + String.format("UUID = %s \n", playerUUID) +
-                                String.format("username = %s \n", player.getName()) +
+                        newPlayer = Bukkit.getPlayer(args[0]);
+                        if (newPlayer == null) {
+                            sender.sendMessage(ChatColor.RED + "invalid player");
+                            return true;
+                        }
+                        newUser(statement, newPlayer.getUniqueId(), newPlayer.getName(), discord, balance);
+
+                        sender.sendMessage(ChatColor.GREEN + "New account created");
+                        sender.sendMessage(ChatColor.GREEN + String.format("UUID = %s \n", newPlayer.getUniqueId()) +
+                                String.format("username = %s \n", newPlayer.getName()) +
                                 String.format("discord username = %s \n", discord) +
                                 String.format("balance = %s", balance));
                     } catch (InvalidParameterException e) {
-                        player.sendMessage(ChatColor.RED + "Invalid args");
+                        sender.sendMessage(ChatColor.RED + "Invalid args");
                     }
                     return true;
                 }
-                case ("test") ->{
-                    player.sendMessage(leaderBoard(statement));
+                case ("removeuser") -> {
+                    if (!(sender.isOp())) {
+                        sender.sendMessage(ChatColor.RED + "You don't have the required permission");
+                        return true;
+                    }
+                    try {
+                        if (!(args.length == 1)) {
+                            sender.sendMessage(ChatColor.RED + "Invalid amount of args");
+                            return true;
+                        }
+                        Player newPlayer = Bukkit.getPlayer(args[0]);
+                        if (newPlayer == null) {
+                            sender.sendMessage(ChatColor.RED + "invalid player");
+                            return true;
+                        }
+                        removeUser(statement, newPlayer.getUniqueId());
+
+                        sender.sendMessage(ChatColor.GREEN + "Account removed");
+
+                    } catch (InvalidParameterException e) {
+                        sender.sendMessage(ChatColor.RED + "Invalid args");
+                    }
+                    return true;
+                }
+
+                case ("lb"), ("leaderboard") ->{
+                    sender.sendMessage(leaderBoard(statement, sender));
                     return true;
                 }
                 default -> {
@@ -262,15 +293,18 @@ public class PancakeCommands implements CommandExecutor {
             throw e;
         }
     }
+    public static void removeUser(Statement statement, UUID uuid) throws SQLException {
+        try{
+            statement.executeUpdate("delete from bank where UUID = \"" + uuid.toString() + "\"");
+        } catch (SQLException e) {
+            Bukkit.getConsoleSender().sendMessage("[removeUser] "+ChatColor.RED + e.getMessage());
+            throw e;
+        }
+    }
+
     public static int balance(Statement statement, UUID uuid) throws SQLException {
         try {
-            ResultSet result;
-            if (uuid != null) {
-                result = statement.executeQuery(
-                        "select pancakes from bank where UUID = \"" + uuid.toString() + "\"");
-            } else {
-                result = statement.executeQuery("select pancakes from bank");
-            }
+            ResultSet result = statement.executeQuery("select pancakes from bank where UUID = \"" + uuid.toString() + "\"");
             return result.getInt("pancakes");
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage("[balance] "+ChatColor.RED + e.getMessage());
@@ -279,17 +313,9 @@ public class PancakeCommands implements CommandExecutor {
     }
     public static int withdraw(Statement statement, int amount, UUID uuid) throws SQLException {
         try{
-            ResultSet result;
-            if (uuid != null) {
-                statement.executeUpdate(
-                        "update bank" +
+            statement.executeUpdate("update bank" +
                                 " set pancakes=pancakes-" + amount + " where UUID=\"" + uuid.toString() + "\"");
-            } else {
-                statement.executeUpdate(
-                        "update bank set pancakes=pancakes-" + amount);
-            }
-            result = statement.executeQuery("select pancakes from bank");
-            return result.getInt("pancakes");
+            return balance(statement, uuid);
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage("[withdraw] "+ChatColor.RED + e.getMessage());
             throw e;
@@ -297,58 +323,63 @@ public class PancakeCommands implements CommandExecutor {
     }
     public static int deposit(Statement statement, int amount, UUID uuid) throws SQLException {
         try{
-            ResultSet result;
-            if (uuid != null) {
-                statement.executeUpdate(
-                        "update bank set pancakes=pancakes+" + amount + " where UUID=\"" + uuid.toString() + "\"");
-            } else {
-                statement.executeUpdate(
-                        "update bank set pancakes=pancakes+" + amount);
-            }
-            result = statement.executeQuery("select pancakes from bank");
-            return result.getInt("pancakes");
+            statement.executeUpdate("update bank set pancakes=pancakes+" + amount + " where UUID=\"" + uuid.toString() + "\"");
+            return balance(statement, uuid);
         } catch (SQLException e) {
             Bukkit.getConsoleSender().sendMessage("[deposit] "+ChatColor.RED + e.getMessage());
             throw e;
         }
     }
-    public static String leaderBoard(Statement statement) throws SQLException {
+    public static String leaderBoard(Statement statement, CommandSender sender) throws SQLException {
         try {
-            ResultSet result = statement.executeQuery("select username, discordUsername, pancakes from bank order by pancakes");
-            int usernameLength = 0, discordLength = 0, pancakeLength = 0, n = 0;
+            ResultSet result = statement.executeQuery("select username, discordUsername, pancakes from bank order by pancakes desc");
+            int usernameLength = 0, discordLength = 0, pancakeLength = 0;
+            ArrayList<String> usernameColumn = new ArrayList<>(), discordColumn = new ArrayList<>();
+            ArrayList<Integer> pancakeColumn = new ArrayList<>();
+            
+            for (int i = 0; i < 10; i++) {
+                if (!(result.next())) break;
 
-            while (result.next() || (n <= 9)) {
-                if (result.getString("username").length() > usernameLength) {
-                    usernameLength = result.getString("username").length();
+                usernameColumn.add(result.getString("username"));
+                if (usernameColumn.get(i).length() > usernameLength) {
+                    usernameLength = usernameColumn.get(i).length();
                 }
-                if (result.getString("discordUsername").length() > discordLength) {
-                    discordLength = result.getString("discordUsername").length();
+                discordColumn.add(result.getString("discordUsername"));
+                if (discordColumn.get(i).length() > discordLength) {
+                    discordLength = discordColumn.get(i).length();
                 }
-                if (Integer.toString(result.getInt("pancakes")).length() > pancakeLength) {
-                    pancakeLength = Integer.toString(result.getInt("pancakes")).length();
+                pancakeColumn.add(result.getInt("pancakes"));
+                if (Integer.toString(pancakeColumn.get(i)).length() > pancakeLength) {
+                    pancakeLength = Integer.toString(pancakeColumn.get(i)).length();
                 }
-                n++;
+            }
+            StringBuilder lb = new StringBuilder("Leaderboard: \n");
+            if (sender instanceof Player) {
+                lb.append(ChatColor.YELLOW).append("Username").append(" ".repeat(Math.max((usernameLength - 7), 0))).append(String.format("%s|%s Discord", ChatColor.WHITE, ChatColor.YELLOW)).append(" ".repeat(Math.max((discordLength - 5), 0))).append(String.format("%s|%s Pancakes", ChatColor.WHITE, ChatColor.YELLOW)).append(" ".repeat(Math.max((pancakeLength - 6), 0))).append("\n");
+                lb.append(ChatColor.WHITE).append("-".repeat(
+                        usernameLength + discordLength + pancakeLength + 6
+                )).append(ChatColor.YELLOW).append("\n");
+            } else {
+                lb.append(ChatColor.YELLOW).append("Username").append(" ".repeat(Math.max((usernameLength - 7), 0))).append(String.format("%s|%s Discord", ChatColor.WHITE, ChatColor.YELLOW)).append(" ".repeat(Math.max((discordLength - 6), 0))).append(String.format("%s|%s Pancakes", ChatColor.WHITE, ChatColor.YELLOW)).append(" ".repeat(Math.max((pancakeLength - 7), 0))).append("\n");
+                lb.append(ChatColor.WHITE).append("-".repeat(
+                        usernameLength + discordLength + pancakeLength + 10
+                )).append(ChatColor.YELLOW).append("\n");
             }
 
-            StringBuilder lb = new StringBuilder(" Username" + " ".repeat(usernameLength - 8) +
-                    "| Discord" + " ".repeat(discordLength - 9) +
-                    "| Pancakes" + " ".repeat(pancakeLength - 10) + "\n");
-
-            n = 0;
-            result.refreshRow();
-            while (result.next() || (n <= 9)) {
-                lb.append(" ").append(result.getString("username")).append(" ".repeat(
-                        usernameLength - result.getString("username").length()
-                )).append("| ").append(result.getString("discordUsername")).append(" ".repeat(
-                        discordLength - result.getString("discordUsername").length()
-                )).append("| ").append(result.getInt("pancakes")).append(" ".repeat(
-                        pancakeLength - result.getString("pancakes").length()
-                ));
-                n++;
+            for (int i = 0; i < usernameColumn.size(); i++) {
+                lb.append("  ").append(usernameColumn.get(i)).append(" ".repeat(
+                        usernameLength - usernameColumn.get(i).length()
+                )).append(String.format("%s | %s", ChatColor.WHITE, ChatColor.YELLOW)).append(discordColumn.get(i)).append(" ".repeat(
+                        discordLength - discordColumn.get(i).length()
+                )).append(String.format("%s | %s", ChatColor.WHITE, ChatColor.YELLOW)).append(pancakeColumn.get(i)).append(" ".repeat(
+                        pancakeLength - Integer.toString(pancakeColumn.get(i)).length()
+                )).append("\n");
             }
+            lb.append(" -");
             return lb.toString();
         } catch (SQLException e) {
-            Bukkit.getConsoleSender().sendMessage("[balance] "+ChatColor.RED + e.getMessage());
+            // System.err.println("[leaderboard] " + e.getMessage());
+            Bukkit.getConsoleSender().sendMessage("[leaderboard] "+ChatColor.RED + e.getMessage());
             throw e;
         }
     }
