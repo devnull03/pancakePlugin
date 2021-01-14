@@ -3,21 +3,28 @@ version: 1.01
 main: io.github.arnav03mehta.PancakePlugin
 author: /dev/Null
 api-version: 1.16
+database: true
 commands:
   withdraw:
     aliases: [wd]
-    usage: /<command> <amount of pancakes>
+    usage: /<command> int
   deposit:
     aliases: [dep]
-    usage: /<command> <amount of pancakes>
+    usage: /<command> int
   balance:
     aliases: [bal]
-    usage: /<command> <player (optional)>
-  newuser:
+    usage: /<command> [player?]
+  adduser:
     permission: op
-    usage: /<command> <player> <discord username (optional)> <initial balance (optional)>
+    usage: /<command> player? <discord username (optional)> [int]
+  removeuser:
+    permission: op
+    usage: /<command> player?
   addbalance:
     permission: op
-    usage: /<command> <player> <amount of pancakes>
+    usage: /<command> player? int
   test:
+    usage: /<command>
+  leaderboard:
+    aliases: [lb]
     usage: /<command>
