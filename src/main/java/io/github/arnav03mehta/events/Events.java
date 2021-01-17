@@ -24,6 +24,7 @@ public class Events implements Listener {
 
     @EventHandler
     public static void onJoin(PlayerJoinEvent event) {
+        // TODO: Fix crash caused due to applying the resource pack
         event.getPlayer().setResourcePack("https://www.dropbox.com/s/fmku6wej3re6qf2/pancake%20texture%20pack.zip?dl=1");
     }
 }
