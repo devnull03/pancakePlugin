@@ -112,3 +112,16 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+
+.classpath
+.gitignore
+.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.jdt.core.prefs
+.gitignore
+.gitignore
+.settings/org.eclipse.jdt.apt.core.prefs
+.settings/org.eclipse.m2e.core.prefs
+.project
+.vscode/extensions.json
+.vscode/settings.json
