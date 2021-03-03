@@ -30,4 +30,4 @@ An example of how the pancakes look:
 
 ![screen shot](https://media.discordapp.net/attachments/744475414075801670/796449356970328124/2021-01-06_23.png?width=884&height=506)
 
-P.S. you can eat also the pancakes, which gives a special effect
+P.S. you can also eat the pancakes, which gives a special effect
